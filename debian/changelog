@@ -1,3 +1,21 @@
+ostree (2020.8-flatpak1~focal) focal; urgency=medium
+
+  * Rebuild for focal
+
+ -- Alexander Larsson <alexl@redhat.com>  Thu, 19 Nov 2020 12:09:31 +0100
+
+ostree (2020.8-flatpak1~bionic) bionic; urgency=medium
+
+  * Update to 2020.8
+
+ -- Alexander Larsson <alexl@redhat.com>  Thu, 19 Nov 2020 11:44:39 +0100
+
+ostree (2020.7-flatpak1~bionic) bionic; urgency=medium
+
+  * Import from debian
+
+ -- Alexander Larsson <alexl@redhat.com>  Thu, 19 Nov 2020 11:29:41 +0100
+
 ostree (2020.7-1) unstable; urgency=medium
 
   * New upstream release
@@ -142,9 +160,6 @@ ostree (2019.2-2) unstable; urgency=medium
       can't reproduce and debug the failure in a local Docker container.
     - Similarly, disable the autopkgtest for now.
   * Standards-Version: 4.4.0 (no changes required)
-  * Use debhelper-compat 12
-    - Override dh_installsystemd instead of dh_systemd_start
-    - Stop overriding libexecdir
 
  -- Simon McVittie <smcv@debian.org>  Tue, 09 Jul 2019 20:13:57 +0100
 
