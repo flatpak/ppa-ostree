@@ -15,6 +15,7 @@ Partially resolves https://github.com/ostreedev/ostree/issues/2525
 libglnx to a version where libglnx#3 has been fixed).
 
 Signed-off-by: Simon McVittie <smcv@collabora.com>
+Bug: https://github.com/ostreedev/ostree/issues/2525
 Applied-upstream: 2022.2, commit:920f85cabc656e4a7c07574aa9af211b6153756d
 ---
  src/libotutil/ot-variant-builder.c | 2 +-
