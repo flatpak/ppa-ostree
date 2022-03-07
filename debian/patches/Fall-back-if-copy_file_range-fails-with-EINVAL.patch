@@ -1,0 +1,31 @@
+From: Olaf Leidinger <oleid@mescharet.de>
+Date: Mon, 24 Jan 2022 16:12:57 +0100
+Subject: Fall back if copy_file_range fails with EINVAL
+
+Although EINVAL usually indicates a programming error, ecryptfs (and
+possibly other stacked filesystems) returns EINVAL for attempts to
+copy_file_range() or sendfile() between files on that filesystem.
+
+Bug: https://gitlab.gnome.org/GNOME/libglnx/-/issues/3
+Bug: https://github.com/ostreedev/ostree/issues/2525
+Bug: https://github.com/flatpak/flatpak/issues/4673
+Bug-Debian: https://bugs.debian.org/1004467
+Applied-upstream: libglnx commit:24231a956a4b849087fbf01173cdebb53e1bd60b
+Applied-upstream: libostree 2022.2, commit:0ebf9d9f64647d0b8b95cda112c7854be6f58ed3
+---
+ libglnx/glnx-fdio.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/libglnx/glnx-fdio.c b/libglnx/glnx-fdio.c
+index 422bc2d..0bb26f4 100644
+--- a/libglnx/glnx-fdio.c
++++ b/libglnx/glnx-fdio.c
+@@ -829,7 +829,7 @@ glnx_regfile_copy_bytes (int fdf, int fdt, off_t max_bytes)
+                   have_cfr = 0;
+                   try_cfr = false;
+                 }
+-              else if (G_IN_SET (errno, EXDEV, EOPNOTSUPP))
++              else if (G_IN_SET (errno, EXDEV, EINVAL, EOPNOTSUPP))
+                 /* We won't try cfr again for this run, but let's be
+                  * conservative and not mark it as available/unavailable until
+                  * we know for sure.
