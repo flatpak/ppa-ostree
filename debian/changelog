@@ -1,4 +1,4 @@
-ostree (2020.8-2+deb11u1) UNRELEASED; urgency=medium
+ostree (2020.8-2+deb11u1) bullseye; urgency=medium
 
   * d/gbp.conf, d/control: Branch for Debian 11 updates
   * Backport various bug fixes from newer libostree releases.
@@ -23,7 +23,7 @@ ostree (2020.8-2+deb11u1) UNRELEASED; urgency=medium
       Fix the ability to fetch OSTree content from paths containing
       non-URI characters (such as backslashes) or non-ASCII
 
- -- Simon McVittie <smcv@debian.org>  Mon, 07 Mar 2022 23:37:37 +0000
+ -- Simon McVittie <smcv@debian.org>  Thu, 10 Mar 2022 11:59:18 +0000
 
 ostree (2020.8-2) unstable; urgency=medium
 
