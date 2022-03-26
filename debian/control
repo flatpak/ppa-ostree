@@ -11,7 +11,7 @@ Build-Depends:
  autoconf,
  automake,
  bison,
- bsdextrautils <!nocheck> | bsdmainutils (<< 12) <!nocheck>,
+ bsdmainutils (<< 12) <!nocheck> | bsdextrautils <!nocheck>,
  ca-certificates,
  cpio,
  debhelper-compat (= 12),
