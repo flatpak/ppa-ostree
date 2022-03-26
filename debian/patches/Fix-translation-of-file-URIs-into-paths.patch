@@ -1,0 +1,57 @@
+From: Phaedrus Leeds <mwleeds@endlessos.org>
+Date: Wed, 10 Mar 2021 10:02:14 -0800
+Subject: Fix translation of file:// URIs into paths
+
+Currently if a file path contains a special character such as '\', and
+that character is encoded into a file:// URI that is passed to
+ostree_repo_pull_with_options(), the percent encoding will remain in the
+path passed to g_file_new() (in the case of backslash %5C) and the pull
+will then fail with a file not found error. This is an important edge
+case to handle because by default on many Linux distributions a
+filesystem with no label is mounted at a path based on its UUID, and
+this is then passed to systemd-escape by Flatpak (when
+--enable-auto-sideloading was used at compile time) to create a symbolic
+link such as this which contains backslashes:
+
+$ ls -l /run/flatpak/sideload-repos/
+total 0
+lrwxrwxrwx 1 mwleeds mwleeds 55 Mar  9 14:21
+'automount-run-media-mwleeds-29419e8f\x2dc680\x2d4e95\x2d9a31\x2d2cc907d421cb'
+-> /run/media/mwleeds/29419e8f-c680-4e95-9a31-2cc907d421cb
+
+And Flatpak then passes libostree a file:// URI containing that path, to
+implement sideloading (pulling content from the USB drive).
+
+This results in an error like:
+
+Error: While pulling app/org.videolan.VLC/x86_64/stable from remote
+flathub:
+/run/flatpak/sideload-repos/automount-run-media-mwleeds-29419e8f%5Cx2dc680%5Cx2d4e95%5Cx2d9a31%5Cx2d2cc907d421cb/.ostree/repo:
+opendir(/run/flatpak/sideload-repos/automount-run-media-mwleeds-29419e8f%5Cx2dc680%5Cx2d4e95%5Cx2d9a31%5Cx2d2cc907d421cb/.ostree/repo):
+No such file or directory
+
+This patch avoids such errors by using g_file_new_for_uri() instead of
+g_file_new_for_path(), so that GLib handles the %-decoding for us.
+
+Bug: https://community.endlessos.com/t/can-not-install-vlc-from-usb-drive-3-9-3/16353
+Bug: https://github.com/flatpak/flatpak/issues/4378
+Origin: upstream, 2021.1, commit:19577522f8eacd868cf25d53e1ac0e7f424e952b
+---
+ src/libostree/ostree-repo-pull.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/libostree/ostree-repo-pull.c b/src/libostree/ostree-repo-pull.c
+index 4f44191..ac9e7a7 100644
+--- a/src/libostree/ostree-repo-pull.c
++++ b/src/libostree/ostree-repo-pull.c
+@@ -4084,8 +4084,8 @@ ostree_repo_pull_with_options (OstreeRepo             *self,
+    */
+   if (g_str_equal (first_scheme, "file") && !pull_data->require_static_deltas)
+     {
+-      g_autofree char *path = _ostree_fetcher_uri_get_path (first_uri);
+-      g_autoptr(GFile) remote_repo_path = g_file_new_for_path (path);
++      g_autofree char *uri = _ostree_fetcher_uri_to_string (first_uri);
++      g_autoptr(GFile) remote_repo_path = g_file_new_for_uri (uri);
+       pull_data->remote_repo_local = ostree_repo_new (remote_repo_path);
+       if (!ostree_repo_open (pull_data->remote_repo_local, cancellable, error))
+         goto out;

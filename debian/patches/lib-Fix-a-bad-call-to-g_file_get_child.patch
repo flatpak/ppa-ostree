@@ -1,0 +1,39 @@
+From: Valentin David <me@valentindavid.com>
+Date: Tue, 2 Nov 2021 19:49:04 +0100
+Subject: lib: Fix a bad call to g_file_get_child
+
+In Glib, since commit 3a6e8bc8876e149c36b6b14c6a25a718edb581ed,
+`g_file_get_child` does not accept absolute path as paramater anymore.
+
+The broken assertion was encountered during `ostree admin deploy`
+command for the checkout of subpath `etc`.
+
+Example of error log:
+```
+(ostree admin deploy:1640): GLib-GIO-CRITICAL **: 03:42:00.570: g_file_get_child: assertion '!g_path_is_absolute (name)' failed
+
+(ostree admin deploy:1640): GLib-GIO-CRITICAL **: 03:42:00.570: g_file_query_info: assertion 'G_IS_FILE (file)' failed
+**
+OSTree:ERROR:src/ostree/ot-main.c:232:ostree_run: assertion failed: (success || error)
+Bail out! OSTree:ERROR:src/ostree/ot-main.c:232:ostree_run: assertion failed: (success || error)
+```
+
+Bug: https://github.com/flatpak/flatpak/pull/4707
+Origin: upstream, 2021.6, commit:adc097a2edb1b7aaf5604043b4b1d5bd6ef8a308
+---
+ src/libostree/ostree-repo-checkout.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/libostree/ostree-repo-checkout.c b/src/libostree/ostree-repo-checkout.c
+index 00c6a77..c6645d7 100644
+--- a/src/libostree/ostree-repo-checkout.c
++++ b/src/libostree/ostree-repo-checkout.c
+@@ -1381,7 +1381,7 @@ ostree_repo_checkout_at (OstreeRepo                        *self,
+   g_autoptr(GFile) target_dir = NULL;
+ 
+   if (strcmp (options->subpath, "/") != 0)
+-    target_dir = g_file_get_child (commit_root, options->subpath);
++    target_dir = g_file_resolve_relative_path (commit_root, options->subpath);
+   else
+     target_dir = g_object_ref (commit_root);
+   g_autoptr(GFileInfo) target_info =

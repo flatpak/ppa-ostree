@@ -1,0 +1,60 @@
+From: Phaedrus Leeds <mwleeds@protonmail.com>
+Date: Sat, 19 Feb 2022 07:55:02 -0600
+Subject: Fix marking static delta commits as partial
+
+This patch makes it so that we mark the .commit file from a static delta
+as partial before writing the commit to the staging directory. This
+exactly mirrors what we do in meta_fetch_on_complete() when writing the
+commit on that codepath, which should lend some credibility to the
+correctness of this patch.
+
+I have checked that this fixes an issue Flatpak users have been
+encountering (https://github.com/flatpak/flatpak/issues/3479) which
+results in error messages like "error: Failed to install
+org.freedesktop.Sdk.Extension.texlive: Failed to read commit
+c7958d966cfa8b80a42877d1d6124831d7807f93c89461a2a586956aa28d438a: No
+such metadata object
+8bdaa943b957f3cf14d19301c59c7eec076e57389e0fbb3ef5d30082e47a178f.dirtree"
+
+Here's the sequence of events that lead to the error:
+1. An install operation is started that fetches static deltas.
+2. The fetch is interrupted for some reason such as network connectivity
+   dropping.
+3. The .commit and .commitmeta files for the commit being pulled are
+   left in the staging dir, e.g.
+   "~/.local/share/flatpak/repo/tmp/staging-dfe862b2-13fc-49a2-ac92-5a59cc0d8e18-RURckd"
+4. There is no `.commitpartial` file for the commit in
+   "~/.local/share/flatpak/repo/state/"
+5. The next time the user attempts the install, libostree reuses the
+   existing staging dir, pulls the commit and commitmeta objects into
+   the repo from the staging dir on the assumption that it's a complete
+   commit.
+6. Flatpak then tries to deploy the commit but fails in
+   ostree_repo_read_commit() in flatpak_dir_deploy(), leading to the
+   error message "Failed to read commit ..."
+7. This happens again any subsequent time the user attempts the install,
+   until the incomplete commit is removed with "flatpak repair --user".
+
+I will try to also add a workaround in Flatpak so this is fixed even
+when Flatpak links against affected versions of libostree.
+
+Bug: https://github.com/flatpak/flatpak/issues/3479
+Origin: upstream, 2022.2, commit:5d3b1ca37a508e9f80702b7ef7383fe95253ec6a
+---
+ src/libostree/ostree-repo-pull.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/src/libostree/ostree-repo-pull.c b/src/libostree/ostree-repo-pull.c
+index 758c505..4f44191 100644
+--- a/src/libostree/ostree-repo-pull.c
++++ b/src/libostree/ostree-repo-pull.c
+@@ -2214,6 +2214,9 @@ process_one_static_delta (OtPullData                 *pull_data,
+                                          ref, cancellable, error))
+             return FALSE;
+ 
++          if (!ostree_repo_mark_commit_partial (pull_data->repo, to_revision, TRUE, error))
++            return FALSE;
++
+           if (detached_data && !ostree_repo_write_commit_detached_metadata (pull_data->repo,
+                                                                             to_revision,
+                                                                             detached_data,

@@ -1,3 +1,45 @@
+ostree (2020.8-2+deb11u1) bullseye; urgency=medium
+
+  * d/gbp.conf, d/control: Branch for Debian 11 updates
+  * Backport various bug fixes from newer libostree releases.
+    Each of these fixes an issue that was reported against Flatpak when
+    using the libostree from Debian 11, either via bullseye or
+    buster-backports.
+    - d/p/Fall-back-if-copy_file_range-fails-with-EINVAL.patch:
+      Add patch to fall back if copy_file_range fails with EINVAL.
+      This fixes an incompatibility with eCryptFS, in particular when
+      using Flatpak in an eCryptFS home directory. (Closes: #1004467)
+    - d/p/libotutil-Avoid-infinite-recursion-during-error-unwinding.patch:
+      Avoid infinite recursion when recovering from certain errors, in
+      particular the one that was a symptom of #1004467.
+    - d/p/Fix-marking-static-delta-commits-as-partial.patch:
+      Mark commits as partial before downloading, to avoid Flatpak and other
+      ostree users getting into a state where a failed download cannot be
+      resumed.
+    - d/p/lib-Fix-a-bad-call-to-g_file_get_child.patch:
+      Fix an assertion failure when using a backport or local build of
+      GLib >= 2.71
+    - d/p/Fix-translation-of-file-URIs-into-paths.patch:
+      Fix the ability to fetch OSTree content from paths containing
+      non-URI characters (such as backslashes) or non-ASCII
+
+ -- Simon McVittie <smcv@debian.org>  Thu, 10 Mar 2022 11:59:18 +0000
+
+ostree (2020.8-2) unstable; urgency=medium
+
+  * d/p/test-pull-summary-sigs-Set-timestamps-to-serve-expected-f.patch:
+    Add proposed patch to fix test failures when run on tmpfs
+    (Closes: #975418)
+
+ -- Simon McVittie <smcv@debian.org>  Sun, 22 Nov 2020 13:24:35 +0000
+
+ostree (2020.8-1) unstable; urgency=medium
+
+  * New upstream release
+  * Update symbols file
+
+ -- Simon McVittie <smcv@debian.org>  Thu, 19 Nov 2020 14:47:09 +0000
+
 ostree (2020.8-flatpak1~focal) focal; urgency=medium
 
   * Rebuild for focal

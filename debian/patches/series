@@ -1,1 +1,7 @@
+test-pull-summary-sigs-Set-timestamps-to-serve-expected-f.patch
+Fall-back-if-copy_file_range-fails-with-EINVAL.patch
+libotutil-Avoid-infinite-recursion-during-error-unwinding.patch
+Fix-marking-static-delta-commits-as-partial.patch
+lib-Fix-a-bad-call-to-g_file_get_child.patch
+Fix-translation-of-file-URIs-into-paths.patch
 debian/Skip-test-pull-repeated-during-CI.patch

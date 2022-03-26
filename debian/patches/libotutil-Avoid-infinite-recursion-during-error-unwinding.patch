@@ -1,0 +1,36 @@
+From: Simon McVittie <smcv@collabora.com>
+Date: Fri, 28 Jan 2022 11:08:00 +0000
+Subject: libotutil: Avoid infinite recursion during error unwinding
+
+When we clean up from an error, for example copy_file_range() failing
+while we generate a static delta (perhaps caused by
+https://gitlab.gnome.org/GNOME/libglnx/-/issues/3 or by a
+genuine write error), we might free a variant builder that has a
+non-null parent. Previously, this caused infinite recursion and a stack
+overflow, repeatedly freeing the same object, but Luca Bruno suggested
+that the intention here appears to have been to free the parent object.
+
+Partially resolves https://github.com/ostreedev/ostree/issues/2525
+(the other bug reported in that issue needs to be resolved by updating
+libglnx to a version where libglnx#3 has been fixed).
+
+Signed-off-by: Simon McVittie <smcv@collabora.com>
+Bug: https://github.com/ostreedev/ostree/issues/2525
+Applied-upstream: 2022.2, commit:920f85cabc656e4a7c07574aa9af211b6153756d
+---
+ src/libotutil/ot-variant-builder.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/libotutil/ot-variant-builder.c b/src/libotutil/ot-variant-builder.c
+index 6636068..afbdc68 100644
+--- a/src/libotutil/ot-variant-builder.c
++++ b/src/libotutil/ot-variant-builder.c
+@@ -832,7 +832,7 @@ static void
+ ot_variant_builder_info_free (OtVariantBuilderInfo *info)
+ {
+   if (info->parent)
+-    ot_variant_builder_info_free (info);
++    ot_variant_builder_info_free (info->parent);
+ 
+   g_variant_type_free (info->type);
+   g_array_unref (info->child_ends);
