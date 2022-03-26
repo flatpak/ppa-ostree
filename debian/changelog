@@ -1,3 +1,16 @@
+ostree (2020.8-flatpak2~20.04) focal; urgency=medium
+
+  * Merge Debian 11.3 stable update into Ubuntu 20.04 backport
+  * Minimize PPA changes
+    - Return to debhelper compat level 12, which is available in focal
+    - d/.gitignore: Reinstate
+  * Remaining changes, relative to Debian 11:
+    - d/gbp.conf: Switch branch to ppa/focal
+    - d/control: Swap order of alternatives for bsdextrautils.
+      Ubuntu 20.04 had bsdmainutils 11.x, without the bsdextrautils split.
+
+ -- Simon McVittie <smcv@debian.org>  Sat, 26 Mar 2022 18:53:24 +0000
+
 ostree (2020.8-2+deb11u1) bullseye; urgency=medium
 
   * d/gbp.conf, d/control: Branch for Debian 11 updates
